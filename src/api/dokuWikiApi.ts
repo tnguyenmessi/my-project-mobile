@@ -222,6 +222,19 @@ export const putPage = async (pageId: string, content: string, summary: string =
         return false;
     }
 };
+export const checkPageExists = async (pageId: string): Promise<boolean> => {
+    try {
+        const result = await callApi('wiki.getPageInfo', [pageId]);
+        if (result && result.struct && result.struct.title !== undefined) {
+            return true;
+        }
+        const pageContent = await callApi('wiki.getPage', [pageId]);
+        return pageContent && pageContent.string !== '';
+    } catch (error) {
+        console.error(`Failed to check if page ${pageId} exists:`, error);
+        return false;
+    }
+};
 
 export const search = async (query: string): Promise<any[]> => {
     try {

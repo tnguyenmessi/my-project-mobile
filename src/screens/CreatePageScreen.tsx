@@ -3,7 +3,7 @@ import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 import RNPickerSelect from 'react-native-picker-select';
-import { dokuwikiLogin, getNamespaces } from '../api/dokuWikiApi';
+import { dokuwikiLogin, getNamespaces, checkPageExists } from '../api/dokuWikiApi';
 import { getAllowedNamespaces } from '../utils/namespaceAccess';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -19,43 +19,42 @@ const CreatePageScreen: React.FC<Props> = ({ navigation }) => {
     const [pageId, setPageId] = useState('');
 
     useEffect(() => {
-    const loadNamespaces = async () => {
-        try {
-            const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
-            const username = await AsyncStorage.getItem('username');
-            console.log('🔐 isLoggedIn:', isLoggedIn, '👤 username:', username);
-            
-            if (isLoggedIn !== 'true' || !username) {
-                console.log('Not logged in or no username, attempting login...');
-                const loginSuccess = await dokuwikiLogin('admin', 'your_admin_password');
-                if (!loginSuccess) {
-                    console.error('Login failed, cannot load namespaces');
-                    Alert.alert('Lỗi', 'Đăng nhập thất bại, không thể tải namespaces.');
-                    return;
+        const loadNamespaces = async () => {
+            try {
+                const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+                const username = await AsyncStorage.getItem('username');
+                console.log('🔐 isLoggedIn:', isLoggedIn, '👤 username:', username);
+                
+                if (isLoggedIn !== 'true' || !username) {
+                    console.log('Not logged in or no username, attempting login...');
+                    const loginSuccess = await dokuwikiLogin('admin', 'your_admin_password');
+                    if (!loginSuccess) {
+                        console.error('Login failed, cannot load namespaces');
+                        Alert.alert('Lỗi', 'Đăng nhập thất bại, không thể tải namespaces.');
+                        return;
+                    }
                 }
+                
+                const allNamespaces = await getNamespaces();
+                console.log('📂 allNamespaces:', allNamespaces);
+                const filtered = getAllowedNamespaces(username || '', allNamespaces);
+                console.log('✅ filtered:', filtered);
+                
+                if (filtered.length === 0) {
+                    console.warn('No namespaces available after filtering');
+                    Alert.alert('Cảnh báo', 'Không tìm thấy namespace nào. Kiểm tra quyền truy cập hoặc liên hệ admin.');
+                }
+                
+                setNamespaces(filtered);
+            } catch (err) {
+                console.error('❌ Lỗi khi tải namespace:', err);
+                Alert.alert('Lỗi', 'Không thể tải danh sách namespace.');
             }
-            
-            const allNamespaces = await getNamespaces();
-            console.log('📂 allNamespaces:', allNamespaces);
-            const filtered = getAllowedNamespaces(username || '', allNamespaces);
-            console.log('✅ filtered:', filtered);
-            
-            if (filtered.length === 0) {
-                console.warn('No namespaces available after filtering');
-                Alert.alert('Cảnh báo', 'Không tìm thấy namespace nào. Kiểm tra quyền truy cập hoặc liên hệ admin.');
-            }
-            
-            setNamespaces(filtered);
-        } catch (err) {
-            console.error('❌ Lỗi khi tải namespace:', err);
-            Alert.alert('Lỗi', 'Không thể tải danh sách namespace.');
-        }
-    };
-    loadNamespaces();
-}, []);
+        };
+        loadNamespaces();
+    }, []);
 
-
-    const handleCreate = () => {
+    const handleCreate = async () => {
         const trimmedNs = selectedNamespace.trim().replace(/\s+/g, '_');
         const trimmedId = pageId.trim().replace(/\s+/g, '_');
 
@@ -65,12 +64,41 @@ const CreatePageScreen: React.FC<Props> = ({ navigation }) => {
         }
 
         const fullId = `${trimmedNs}:${trimmedId}`;
-if (!/^[a-zA-Z0-9_:]+$/.test(fullId)) {
+        if (!/^[a-zA-Z0-9_:]+$/.test(fullId)) {
             Alert.alert('Lỗi', 'ID trang chỉ nên chứa chữ cái, số, gạch dưới (_) và dấu hai chấm (:).');
             return;
         }
 
-        navigation.navigate('EditPage', { pageId: fullId, isNew: true });
+        try {
+            const pageExists = await checkPageExists(fullId);
+            if (pageExists) {
+                console.log('⚠️ Page already exists, showing overwrite alert');
+                Alert.alert(
+                    'Trang đã tồn tại',
+                    `ID trang "${fullId}" đã tồn tại. Bạn có muốn ghi đè nội dung?`,
+                    [
+                        {
+                            text: 'Hủy bỏ',
+                            style: 'cancel',
+                            onPress: () => console.log('Hủy bỏ ghi đè'),
+                        },
+                        {
+                            text: 'Ghi đè',
+                            style: 'destructive',
+                            onPress: () => {
+                                navigation.navigate('EditPage', { pageId: fullId, isNew: false });
+                            },
+                        },
+                    ],
+                    { cancelable: true }
+                );
+            } else {
+                navigation.navigate('EditPage', { pageId: fullId, isNew: true });
+            }
+        } catch (err) {
+            console.error('❌ Lỗi khi kiểm tra ID trang:', err);
+            Alert.alert('Lỗi', 'Không thể kiểm tra trạng thái trang. Vui lòng thử lại.');
+        }
     };
 
     return (
