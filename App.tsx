@@ -15,6 +15,9 @@ import { useAuth } from './src/hooks/useAuth';
 import { StackNavigator } from './src/navigation/StackNavigator';
 import { DrawerNavigator } from './src/navigation/DrawerNavigator';
 import LoginScreen from './src/screens/LoginScreen';
+import { View, StyleSheet } from 'react-native';
+import GlobalSearchBar from './src/components/GlobalSearchBar';
+import RedAppBar from './src/components/RedAppBar';
 
 const theme = {
   ...MD3LightTheme,

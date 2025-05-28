@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { Text, List, Searchbar } from 'react-native-paper';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/StackNavigator';
-
-type PageListScreenProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'PageList'>;
-};
+import { useNavigation } from '@react-navigation/native';
 
 type Page = {
   id: string;
@@ -14,7 +9,8 @@ type Page = {
   namespace: string;
 };
 
-export const PageListScreen: React.FC<PageListScreenProps> = ({ navigation }) => {
+export const PageListScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const [searchQuery, setSearchQuery] = useState('');
   const [pages, setPages] = useState<Page[]>([]); // TODO: Fetch from API
 

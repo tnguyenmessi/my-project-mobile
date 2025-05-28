@@ -1,41 +1,36 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
+import { View, StyleSheet, Image } from 'react-native';
+import { DrawerContentScrollView, DrawerItem, DrawerContentComponentProps } from '@react-navigation/drawer';
 import { Text } from 'react-native-paper';
-import { DrawerNavigationProp } from '@react-navigation/drawer';
-import { DrawerParamList } from '../navigation/DrawerNavigator';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../hooks/useAuth';
 
-type CustomDrawerProps = {
-  navigation: DrawerNavigationProp<DrawerParamList>;
-};
-
-export const CustomDrawer: React.FC<CustomDrawerProps> = ({ navigation }) => {
-  const { logout } = useAuth();
+export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
+  const { logout, user } = useAuth();
+  const { navigation } = props;
+  const isGuest = !user || user.name === 'Guest';
   return (
     <DrawerContentScrollView>
       <View style={styles.drawerContent}>
         <View style={styles.userSection}>
-          <Text style={styles.title}>THD Wiki Mobile</Text>
+          <Image source={require('../assets/logo-thd.png')} style={styles.avatar} />
+          <Text style={styles.title}>
+            {isGuest ? 'Tài Khoản Khách (guest)' : user?.name}
+          </Text>
         </View>
         <DrawerItem
-          label="Home"
+          icon={({ color, size }) => <Icon name="home-outline" color={color} size={size} />}
+          label="Trang chủ"
           onPress={() => navigation.navigate('Home')}
         />
         <DrawerItem
-          label="Page List"
-          onPress={() => navigation.navigate('PageList')}
+          icon={({ color, size }) => <Icon name="account-circle-outline" color={color} size={size} />}
+          label="Hồ sơ cá nhân"
+          onPress={() => navigation.navigate('UserProfile')}
         />
         <DrawerItem
-          label="Search"
-          onPress={() => navigation.navigate('Search')}
-        />
-        <DrawerItem
-          label="Settings"
-          onPress={() => navigation.navigate('Settings')}
-        />
-        <DrawerItem
-          label="Logout"
+          icon={({ color, size }) => <Icon name="logout" color={color} size={size} />}
+          label="Đăng xuất"
           onPress={logout}
           labelStyle={{ color: '#E53935', fontWeight: 'bold' }}
         />
@@ -52,9 +47,17 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    marginBottom: 10,
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });
