@@ -1,82 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text, ActivityIndicator, IconButton } from 'react-native-paper';
-import { WebView } from 'react-native-webview';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../navigation/StackNavigator';
+import React, { useState, useEffect, Fragment } from 'react';
+import { View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { Text } from 'react-native-paper';
+import { useRoute } from '@react-navigation/native';
+import { pageService } from '../api/pageService';
+import MarkdownViewer from '../components/MarkdownViewer';
+import RedAppBar from '../components/RedAppBar';
+import GlobalSearchBar from '../components/GlobalSearchBar';
 
-type PageDetailScreenProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'PageDetail'>;
-  route: RouteProp<RootStackParamList, 'PageDetail'>;
-};
-
-export const PageDetailScreen: React.FC<PageDetailScreenProps> = ({
-  navigation,
-  route,
-}) => {
+const PageDetailScreen = () => {
+  const route = useRoute();
+  const { pageId } = (route.params || {}) as { pageId: string };
   const [loading, setLoading] = useState(true);
-  const [content, setContent] = useState('');
-  const { pageId } = route.params;
+  const [html, setHtml] = useState('');
 
   useEffect(() => {
-    // TODO: Fetch page content from API
-    setLoading(false);
-    setContent('<h1>Page Content</h1><p>This is a sample page content.</p>');
+    const fetchPage = async () => {
+      try {
+        const data = await pageService.getPageContent(pageId);
+        setHtml(data.html);
+      } catch (e) {
+        Alert.alert('Lỗi', 'Không thể tải nội dung trang.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPage();
   }, [pageId]);
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => navigation.goBack()}
-        />
-        <Text variant="titleLarge" style={styles.title}>
-          Page Detail
-        </Text>
-        <IconButton
-          icon="pencil"
-          size={24}
-          onPress={() => navigation.navigate('Editor')}
-        />
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#E53935" />
       </View>
-      {loading ? (
-        <ActivityIndicator style={styles.loader} />
-      ) : (
-        <WebView
-          source={{ html: content }}
-          style={styles.webview}
-          originWhitelist={['*']}
-        />
-      )}
-    </View>
+    );
+  }
+
+  return (
+    <Fragment>
+      <RedAppBar />
+      <GlobalSearchBar />
+      <View style={styles.container}>
+        <MarkdownViewer html={html} />
+      </View>
+    </Fragment>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  title: {
-    flex: 1,
-    textAlign: 'center',
-  },
-  loader: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  webview: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
 });
+
+export default PageDetailScreen;

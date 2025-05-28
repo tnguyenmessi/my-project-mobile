@@ -1,37 +1,37 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { View, StyleSheet, TextInput } from 'react-native';
-import { Appbar, IconButton } from 'react-native-paper';
+import { IconButton } from 'react-native-paper';
+import RedAppBar from '../components/RedAppBar';
+import GlobalSearchBar from '../components/GlobalSearchBar';
 
 export const EditorScreen = () => {
   return (
-    <View style={styles.container}>
-      <Appbar.Header style={styles.header}>
-        <Appbar.BackAction onPress={() => {}} />
-        <Appbar.Content title="Edit: ##########" color="#fff" />
-        <Appbar.Action icon="dots-vertical" onPress={() => {}} />
-      </Appbar.Header>
-      <View style={styles.content}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Nội dung thay đổi"
-          multiline
-        />
-        <IconButton
-          icon="check"
-          size={32}
-          style={styles.saveButton}
-          containerColor="#d32f2f"
-          iconColor="#fff"
-          onPress={() => {}}
-        />
+    <Fragment>
+      <RedAppBar />
+      <GlobalSearchBar />
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Nội dung thay đổi"
+            multiline
+          />
+          <IconButton
+            icon="check"
+            size={32}
+            style={styles.saveButton}
+            containerColor="#d32f2f"
+            iconColor="#fff"
+            onPress={() => {}}
+          />
+        </View>
       </View>
-    </View>
+    </Fragment>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#d32f2f' },
   content: { flex: 1, padding: 16 },
   textInput: {
     flex: 1,

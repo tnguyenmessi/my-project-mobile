@@ -1,60 +1,67 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Button, Text } from 'react-native-paper';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/StackNavigator';
+import React, { useEffect, useState, Fragment } from 'react';
+import { View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import MarkdownViewer from '../components/MarkdownViewer';
+import { pageService } from '../api/pageService';
+import { Appbar, Menu } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import type { DrawerNavigationProp } from '@react-navigation/drawer';
+import type { DrawerParamList } from '../navigation/DrawerNavigator';
+import RedAppBar from '../components/RedAppBar';
+import GlobalSearchBar from '../components/GlobalSearchBar';
 
-type HomeScreenProps = {
-  navigation: NativeStackNavigationProp<RootStackParamList, 'Home'>;
-};
+const HomeScreen: React.FC = () => {
+  const [html, setHtml] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [menuVisible, setMenuVisible] = useState(false);
+  const navigation = useNavigation<DrawerNavigationProp<DrawerParamList>>();
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  return (
-    <View style={styles.container}>
-      <Text variant="headlineMedium" style={styles.title}>
-        Welcome to THD Wiki
-      </Text>
-      <View style={styles.buttonContainer}>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('PageList')}
-          style={styles.button}
-        >
-          Browse Pages
-        </Button>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('Search')}
-          style={styles.button}
-        >
-          Search
-        </Button>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('Settings')}
-          style={styles.button}
-        >
-          Settings
-        </Button>
+  useEffect(() => {
+    const fetchStartPage = async () => {
+      try {
+        const data = await pageService.getPageContent('start');
+        setHtml(data.html);
+      } catch (e) {
+        Alert.alert('Lỗi', 'Không thể tải nội dung trang chủ.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStartPage();
+  }, []);
+
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#E53935" />
       </View>
-    </View>
+    );
+  }
+
+  return (
+    <Fragment>
+      <RedAppBar />
+      <GlobalSearchBar />
+      <View style={styles.container}>
+        <MarkdownViewer html={html} />
+      </View>
+    </Fragment>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: '#fff',
+  },
+  center: {
+    flex: 1,
     justifyContent: 'center',
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  buttonContainer: {
-    gap: 16,
-  },
-  button: {
-    marginBottom: 8,
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
 });
+
+export default HomeScreen;
