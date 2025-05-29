@@ -1,12 +1,12 @@
 import React, { useEffect, useState, Fragment } from 'react';
 import { View, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { List, Text } from 'react-native-paper';
+import { List, Text, IconButton } from 'react-native-paper';
 import { pageService, buildPageTree, PageTreeNode, Page } from '../api/pageService';
 import { useNavigation } from '@react-navigation/native';
 import RedAppBar from '../components/RedAppBar';
 import GlobalSearchBar from '../components/GlobalSearchBar';
 
-const renderTree = (node: PageTreeNode, navigation: any, path: string[] = []) => {
+const renderTree = (node: PageTreeNode, navigation: any, path: string[] = [], level: number = 0) => {
   return Object.entries(node.children).map(([key, child]) => {
     const currentPath = [...path, key];
     if (child.isPage) {
@@ -16,6 +16,7 @@ const renderTree = (node: PageTreeNode, navigation: any, path: string[] = []) =>
           title={child.title || key}
           onPress={() => navigation.navigate('PageDetail', { pageId: child.id })}
           left={props => <List.Icon {...props} icon="file-document-outline" />}
+          style={{ marginLeft: level * 18 }}
         />
       );
     } else {
@@ -24,8 +25,9 @@ const renderTree = (node: PageTreeNode, navigation: any, path: string[] = []) =>
           key={currentPath.join(':')}
           title={key}
           left={props => <List.Icon {...props} icon="folder-outline" />}
+          style={{ marginLeft: level * 18, backgroundColor: level === 0 ? '#fff' : '#fcfcfc' }}
         >
-          {renderTree(child, navigation, currentPath)}
+          {renderTree(child, navigation, currentPath, level + 1)}
         </List.Accordion>
       );
     }
@@ -56,6 +58,10 @@ const SiteMapScreen: React.FC = () => {
     <Fragment>
       <RedAppBar />
       <GlobalSearchBar />
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingLeft: 4 }}>
+        <IconButton icon="arrow-left" onPress={() => navigation.goBack()} />
+        <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Sơ đồ trang web</Text>
+      </View>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.inner}>
           <Text style={styles.header}>Sơ đồ trang web</Text>
@@ -66,7 +72,7 @@ const SiteMapScreen: React.FC = () => {
             <ActivityIndicator size="large" color="#E53935" style={{ marginTop: 32 }} />
           ) : tree ? (
             <List.Section>
-              {renderTree(tree, navigation)}
+              {renderTree(tree, navigation, [], 0)}
             </List.Section>
           ) : null}
         </ScrollView>
