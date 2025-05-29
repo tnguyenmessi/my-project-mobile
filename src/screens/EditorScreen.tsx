@@ -5,6 +5,7 @@ import RedAppBar from '../components/RedAppBar';
 import GlobalSearchBar from '../components/GlobalSearchBar';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { pageService } from '../api/pageService';
+import { useAuth } from '../hooks/useAuth';
 
 export const EditorScreen = () => {
   const route = useRoute();
@@ -16,6 +17,8 @@ export const EditorScreen = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newPageId, setNewPageId] = useState('');
+  const { user } = useAuth();
+  const isGuest = !user || user.name === 'Guest';
 
   useLayoutEffect(() => {
     navigation.setOptions?.({
@@ -50,6 +53,13 @@ export const EditorScreen = () => {
     if (!targetPageId) {
       Alert.alert('Lỗi', 'Vui lòng nhập tên trang mới!');
       return;
+    }
+    if (isGuest) {
+      const ns = targetPageId.split(':')[0];
+      if (ns !== 'playground' && ns !== 'solution') {
+        Alert.alert('Lỗi phân quyền', 'Tài khoản khách chỉ được tạo/sửa trang trong playground hoặc solution!');
+        return;
+      }
     }
     setSaving(true);
     setError(null);

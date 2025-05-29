@@ -3,6 +3,7 @@ import { View, StyleSheet, Alert, TouchableOpacity, TouchableWithoutFeedback, Ke
 import { Text, TextInput, Button, Portal, Modal } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { pageService } from '../api/pageService';
+import { useAuth } from '../hooks/useAuth';
 
 const DEFAULT_NAMESPACES = [
   { label: 'Chọn namespace...', value: '' },
@@ -19,6 +20,20 @@ function getSubNamespaces(all: string[], parent: string) {
   return Array.from(new Set(subs));
 }
 
+// Hàm filter namespace giống WikiAppTS
+function getAllowedNamespaces(username: string, allNamespaces: string[]): string[] {
+  if (!username) return [];
+  if (username === 'admin') return allNamespaces;
+  if (username === 'guest') {
+    return allNamespaces.filter(ns =>
+      ns === 'playground' || ns === 'solutions' || ns.startsWith('user:guest')
+    );
+  }
+  return allNamespaces.filter(ns =>
+    ns.startsWith(`user:${username}`) || ns.startsWith('shared') || ns.startsWith('projects')
+  );
+}
+
 const CreatePageScreen: React.FC = () => {
   const [namespace, setNamespace] = useState(''); // namespace cấp 1
   const [subNamespace, setSubNamespace] = useState(''); // namespace con (nếu có)
@@ -29,22 +44,25 @@ const CreatePageScreen: React.FC = () => {
   const [allNamespaces, setAllNamespaces] = useState<string[]>([]);
   const [subNamespaces, setSubNamespaces] = useState<string[]>([]);
   const navigation = useNavigation<any>();
+  const { user } = useAuth();
+  const isGuest = !user || user.name === 'Guest';
 
   useEffect(() => {
     pageService.getNamespaces().then(list => {
       setAllNamespaces(list);
-      // Lấy namespace cấp 1
-      const topLevel = Array.from(new Set(
+      // Filter namespace theo user
+      const username = user?.name || '';
+      const filtered = getAllowedNamespaces(username, Array.from(new Set(
         list.map(ns => ns.split(':')[0]).filter(ns => ns && ns.trim() !== '')
-      ));
+      )));
       setNamespaces([
         { label: 'Chọn namespace...', value: '' },
-        ...topLevel.map(ns => ({ label: ns, value: ns }))
+        ...filtered.map(ns => ({ label: ns, value: ns }))
       ]);
     }).catch(() => {
       setNamespaces(DEFAULT_NAMESPACES);
     });
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (namespace) {

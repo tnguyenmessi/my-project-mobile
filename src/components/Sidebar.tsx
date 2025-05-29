@@ -52,7 +52,13 @@ export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
             <DrawerItem
               icon={({ color, size }) => <Icon name="logout" color={color} size={size} />}
               label="Đăng xuất"
-              onPress={logout}
+              onPress={async () => {
+                await logout();
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'Login' }],
+                });
+              }}
               labelStyle={{ color: '#E53935', fontWeight: 'bold' }}
             />
           </>

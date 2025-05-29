@@ -6,6 +6,7 @@ import { SearchScreen } from '../screens/SearchScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import CreatePageScreen from '../screens/CreatePageScreen';
+import LoginScreen from '../screens/LoginScreen';
 
 export type RootStackParamList = {
   Main: undefined;
@@ -14,6 +15,7 @@ export type RootStackParamList = {
   Settings: undefined;
   ForgotPassword: undefined;
   CreatePage: undefined;
+  Login: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -31,6 +33,7 @@ export const StackNavigator = () => {
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="CreatePage" component={CreatePageScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
     </Stack.Navigator>
   );
 };
