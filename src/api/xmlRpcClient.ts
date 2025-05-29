@@ -14,11 +14,24 @@ export interface LoginResponse {
   error?: string;
 }
 
+function toXmlRpcValue(param: any): string {
+  if (typeof param === 'string') {
+    return `<value><string>${param}</string></value>`;
+  }
+  if (typeof param === 'object' && param !== null) {
+    // Chỉ hỗ trợ object dạng { summary: '...' }
+    const members = Object.entries(param).map(
+      ([k, v]) => `<member><name>${k}</name><value><string>${v}</string></value></member>`
+    ).join('');
+    return `<value><struct>${members}</struct></value>`;
+  }
+  // Thêm các kiểu khác nếu cần
+  return `<value><string>${String(param)}</string></value>`;
+}
+
 export const xmlRpcClient = {
   async call(method: string, params: any[] = []) {
-    const xmlParams = params.map(param =>
-      `<param><value><string>${param}</string></value></param>`
-    ).join('');
+    const xmlParams = params.map(param => `<param>${toXmlRpcValue(param)}</param>`).join('');
     const xmlRequest = `<?xml version="1.0"?>
       <methodCall>
         <methodName>${method}</methodName>

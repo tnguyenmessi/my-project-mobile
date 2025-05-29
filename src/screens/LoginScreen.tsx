@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, KeyboardAvoidingView, Platform, Dimensions, Alert } from 'react-native';
 import { TextInput, Button, Text, Checkbox } from 'react-native-paper';
 import LinearGradient from 'react-native-linear-gradient';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -11,13 +12,21 @@ const LoginScreen = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const { login, loginAsGuest } = useAuth();
+    const navigation = useNavigation<any>();
 
     const handleLogin = async () => {
-        if (!username || !password) return;
+        if (!username || !password) {
+            Alert.alert('Lỗi', 'Vui lòng nhập đầy đủ tài khoản và mật khẩu!');
+            return;
+        }
         setLoading(true);
-        await login(username, password, rememberMe);
+        const success = await login(username, password, rememberMe);
         setLoading(false);
+        if (!success) {
+            Alert.alert('Đăng nhập thất bại', 'Sai tên đăng nhập hoặc mật khẩu. Vui lòng thử lại!');
+        }
     };
 
     return (
@@ -58,9 +67,14 @@ const LoginScreen = () => {
                         onChangeText={setPassword}
                         style={styles.input}
                         mode="outlined"
-                        secureTextEntry
+                        secureTextEntry={!showPassword}
                         left={<TextInput.Icon icon="lock-outline" />}
-                        right={<TextInput.Icon icon="eye-outline" />}
+                        right={
+                            <TextInput.Icon
+                                icon={showPassword ? "eye-off-outline" : "eye-outline"}
+                                onPress={() => setShowPassword(!showPassword)}
+                            />
+                        }
                     />
                     <View style={styles.rowBetween}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -71,7 +85,7 @@ const LoginScreen = () => {
                             />
                             <Text style={styles.remember}>Remember me</Text>
                         </View>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
                             <Text style={styles.forgot}>Forgot Password?</Text>
                         </TouchableOpacity>
                     </View>

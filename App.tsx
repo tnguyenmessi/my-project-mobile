@@ -29,11 +29,10 @@ const theme = {
 };
 
 const MainApp = () => {
-  const { isLoggedIn, isLoading } = useAuth();
-  if (isLoading) return null; // Hoặc spinner
+  // Không cần kiểm tra isLoggedIn ở đây nữa, luôn render StackNavigator
   return (
     <NavigationContainer>
-      {isLoggedIn ? <DrawerNavigator /> : <LoginScreen />}
+      <StackNavigator />
     </NavigationContainer>
   );
 };

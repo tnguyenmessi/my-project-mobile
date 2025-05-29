@@ -1,17 +1,23 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import { View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
-import { Text } from 'react-native-paper';
-import { useRoute } from '@react-navigation/native';
+import { Text, IconButton } from 'react-native-paper';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { pageService } from '../api/pageService';
 import MarkdownViewer from '../components/MarkdownViewer';
 import RedAppBar from '../components/RedAppBar';
 import GlobalSearchBar from '../components/GlobalSearchBar';
+import PageActionsFab from '../components/PageActionsFab';
+import { useAuth } from '../hooks/useAuth';
 
 const PageDetailScreen = () => {
   const route = useRoute();
   const { pageId } = (route.params || {}) as { pageId: string };
   const [loading, setLoading] = useState(true);
   const [html, setHtml] = useState('');
+  const { user } = useAuth();
+  const canEdit = !!user && user.name !== 'Guest';
+  const canDelete = !!user && user.name === 'admin';
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -39,8 +45,13 @@ const PageDetailScreen = () => {
     <Fragment>
       <RedAppBar />
       <GlobalSearchBar />
+      <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingLeft: 4 }}>
+        <IconButton icon="arrow-left" onPress={() => navigation.goBack()} />
+        <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{pageId}</Text>
+      </View>
       <View style={styles.container}>
         <MarkdownViewer html={html} />
+        <PageActionsFab pageId={pageId} canEdit={canEdit} canDelete={canDelete} />
       </View>
     </Fragment>
   );

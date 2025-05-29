@@ -18,22 +18,45 @@ export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
             {isGuest ? 'Tài Khoản Khách (guest)' : user?.name}
           </Text>
         </View>
-        <DrawerItem
-          icon={({ color, size }) => <Icon name="home-outline" color={color} size={size} />}
-          label="Trang chủ"
-          onPress={() => navigation.navigate('Home')}
-        />
-        <DrawerItem
-          icon={({ color, size }) => <Icon name="account-circle-outline" color={color} size={size} />}
-          label="Hồ sơ cá nhân"
-          onPress={() => navigation.navigate('UserProfile')}
-        />
-        <DrawerItem
-          icon={({ color, size }) => <Icon name="logout" color={color} size={size} />}
-          label="Đăng xuất"
-          onPress={logout}
-          labelStyle={{ color: '#E53935', fontWeight: 'bold' }}
-        />
+        {isGuest ? (
+          <DrawerItem
+            icon={({ color, size }) => <Icon name="login" color={color} size={size} />}
+            label="Đăng nhập"
+            onPress={() => navigation.navigate('Login')}
+            labelStyle={{ color: '#E53935', fontWeight: 'bold' }}
+          />
+        ) : null}
+        {!isGuest && (
+          <>
+            <DrawerItem
+              icon={({ color, size }) => <Icon name="home-outline" color={color} size={size} />}
+              label="Trang chủ"
+              onPress={() => navigation.navigate('Home')}
+            />
+            <DrawerItem
+              icon={({ color, size }) => <Icon name="account-circle-outline" color={color} size={size} />}
+              label="Hồ sơ cá nhân"
+              onPress={() => navigation.navigate('UserProfile')}
+            />
+            <DrawerItem
+              icon={({ color, size }) => <Icon name="plus-box-outline" color={color} size={size} />}
+              label="Tạo trang mới"
+              onPress={() => {
+                navigation.closeDrawer();
+                setTimeout(() => {
+                  navigation.getParent()?.navigate('CreatePage');
+                }, 250);
+              }}
+              labelStyle={{ color: '#388e3c', fontWeight: 'bold' }}
+            />
+            <DrawerItem
+              icon={({ color, size }) => <Icon name="logout" color={color} size={size} />}
+              label="Đăng xuất"
+              onPress={logout}
+              labelStyle={{ color: '#E53935', fontWeight: 'bold' }}
+            />
+          </>
+        )}
       </View>
     </DrawerContentScrollView>
   );

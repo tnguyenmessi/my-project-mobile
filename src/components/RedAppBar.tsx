@@ -9,7 +9,12 @@ const RedAppBar: React.FC = () => {
   return (
     <Appbar.Header style={{ backgroundColor: '#d32f2f' }}>
       <Appbar.Action icon="menu" color="#fff" onPress={() => navigation.openDrawer()} />
-      <Appbar.Content title="THD Wiki" color="#fff" titleStyle={{ fontWeight: 'bold', fontSize: 20 }} />
+      <Appbar.Content 
+        title="THD Wiki" 
+        color="#fff" 
+        titleStyle={{ fontWeight: 'bold', fontSize: 20 }} 
+        onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })}
+      />
       <Menu
         visible={menuVisible}
         onDismiss={() => setMenuVisible(false)}
@@ -19,7 +24,16 @@ const RedAppBar: React.FC = () => {
       >
         <Menu.Item onPress={() => { setMenuVisible(false); navigation.navigate('RecentChanges'); }} title="Thay đổi gần đây" />
         <Menu.Item onPress={() => { setMenuVisible(false); navigation.navigate('MediaManager'); }} title="Quản lý phương tiện" />
-        <Menu.Item onPress={() => { setMenuVisible(false); navigation.navigate('SiteMap'); }} title="Sơ đồ trang web" />
+        <Menu.Item
+          onPress={() => {
+            setMenuVisible(false);
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'SiteMap' }],
+            });
+          }}
+          title="Sơ đồ trang web"
+        />
       </Menu>
     </Appbar.Header>
   );

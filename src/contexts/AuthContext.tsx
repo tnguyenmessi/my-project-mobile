@@ -39,17 +39,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const login = async (username: string, password: string, rememberMe = false): Promise<boolean> => {
         setIsLoading(true);
-        const success = await dokuwikiLogin(username, password);
-        if (success) {
-            setIsLoggedIn(true);
-            setUser({ name: username, email: `${username}@yourdomain.com`, avatar: require('../assets/logo-thd.png') });
-            if (rememberMe) {
-                await AsyncStorage.setItem('isLoggedIn', 'true');
-                await AsyncStorage.setItem('username', username);
+        try {
+            const result = await dokuwikiLogin(username, password);
+            if (result) {
+                setIsLoggedIn(true);
+                setUser({ name: username, email: `${username}@yourdomain.com`, avatar: require('../assets/logo-thd.png') });
+                if (rememberMe) {
+                    await AsyncStorage.setItem('isLoggedIn', 'true');
+                    await AsyncStorage.setItem('username', username);
+                }
+                setIsLoading(false);
+                return true;
             }
+            setIsLoading(false);
+            return false;
+        } catch (e) {
+            setIsLoading(false);
+            return false;
         }
-        setIsLoading(false);
-        return success;
     };
 
     const logout = async () => {
@@ -65,9 +72,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const loginAsGuest = async () => {
         setIsLoading(true);
-        setIsLoggedIn(true);
-        setUser({ name: 'Guest', email: 'guest@yourdomain.com', avatar: require('../assets/logo-thd.png') });
-        // Không lưu vào AsyncStorage để không giữ trạng thái guest sau khi đóng app
+        await login('guest', 'Thd@123!', false);
         setIsLoading(false);
     };
 

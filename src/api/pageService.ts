@@ -141,32 +141,56 @@ export class PageService {
 
   async search(query: string): Promise<Page[]> {
     try {
-      const result = await xmlRpcClient.call('wiki.search', [query]);
-      return result.map((page: any) => ({
-        id: page.id,
-        title: page.title,
-        namespace: page.namespace,
-        lastModified: page.lastModified,
-        size: page.size,
-      }));
+      // Đổi sang dokuwiki.search để hỗ trợ fulltext search
+      const result = await xmlRpcClient.call('dokuwiki.search', [query]);
+      // Parse kết quả XML-RPC trả về giống WikiAppTS
+      if (result && result.array && result.array.data) {
+        let values = result.array.data.value;
+        if (!values) return [];
+        if (!Array.isArray(values)) values = [values];
+        return values.map((item: any) => {
+          if (!item.struct || !item.struct.member) return {};
+          let members = item.struct.member;
+          if (!Array.isArray(members)) members = [members];
+          return members.reduce((acc: Record<string, any>, member: any) => {
+            const valueKey = Object.keys(member.value)[0];
+            acc[member.name] = member.value[valueKey];
+            return acc;
+          }, {});
+        });
+      }
+      return [];
     } catch (error) {
       console.error('Failed to search pages:', error);
       throw error;
     }
   }
 
-  async searchPages(query: string): Promise<{id: string, title: string}[]> {
+  async searchPages(query: string): Promise<{id: string, title: string, snippet?: string}[]> {
     try {
       const results = await this.search(query);
-      return results.map((item: any) => ({ id: item.id, title: item.title || item.id }));
+      return results.map((item: any) => ({
+        id: item.id,
+        title: item.title || item.id,
+        snippet: item.snippet,
+      }));
     } catch (e) {
-      // Fallback: lấy toàn bộ page rồi filter client
+      // Fallback: lấy toàn bộ page rồi filter client theo nội dung
       const allPages = await this.getPageList('');
       const q = query.toLowerCase();
-      return allPages.filter(p =>
-        (p.title && p.title.toLowerCase().includes(q)) ||
-        (p.id && p.id.toLowerCase().includes(q))
-      ).map(p => ({ id: p.id, title: p.title || p.id }));
+      const matches: {id: string, title: string, snippet?: string}[] = [];
+      for (const p of allPages) {
+        try {
+          const contentObj = await this.getPageContent(p.id);
+          if (contentObj.content && contentObj.content.toLowerCase().includes(q)) {
+            // Lấy đoạn snippet chứa từ khóa
+            const idx = contentObj.content.toLowerCase().indexOf(q);
+            const snippet = contentObj.content.substring(Math.max(0, idx - 20), idx + q.length + 20);
+            matches.push({ id: p.id, title: p.title || p.id, snippet });
+          }
+        } catch {}
+      }
+      return matches;
     }
   }
 
@@ -185,9 +209,31 @@ export class PageService {
         summary: item.summary,
       }));
     } catch (e) {
-      console.error('Failed to get recent changes:', e);
-      return [];
+      console.error('Failed to get recent changes, fallback to getPagelist:', e);
+      // Fallback: lấy toàn bộ page, sort theo lastModified
+      const allPages = await this.getPageList('');
+      return allPages
+        .filter(p => p.lastModified)
+        .sort((a, b) => Number(b.lastModified) - Number(a.lastModified))
+        .slice(0, 20)
+        .map(p => ({
+          id: p.id,
+          user: '',
+          type: '',
+          timestamp: Number(p.lastModified),
+          summary: '',
+        }));
     }
+  }
+
+  async getNamespaces(): Promise<string[]> {
+    // Lấy toàn bộ page, trích xuất namespace, loại trùng, trả về mảng string
+    const pages = await this.getPageList('');
+    const namespaces = new Set<string>();
+    pages.forEach(page => {
+      if (page.namespace) namespaces.add(page.namespace);
+    });
+    return Array.from(namespaces).sort();
   }
 }
 

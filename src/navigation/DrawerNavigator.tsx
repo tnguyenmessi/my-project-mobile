@@ -5,6 +5,7 @@ import { SiteMapStack } from './SiteMapStack';
 import { CustomDrawer } from '../components/Sidebar';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import RecentChangesScreen from '../screens/RecentChangesScreen';
+import { useAuth } from '../hooks/useAuth';
 
 export type DrawerParamList = {
   Home: undefined;
@@ -15,15 +16,19 @@ export type DrawerParamList = {
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
 
-export const DrawerNavigator = () => (
-  <Drawer.Navigator
-    drawerContent={(props) => <CustomDrawer {...props} />}
-    screenOptions={{ headerShown: false }}
-  >
-    <Drawer.Screen name="Home" component={HomeStack} />
-    <Drawer.Screen name="SiteMap" component={SiteMapStack} />
-    <Drawer.Screen name="UserProfile" component={UserProfileScreen} />
-    <Drawer.Screen name="RecentChanges" component={RecentChangesScreen} />
-    {/* Thêm các màn khác nếu cần */}
-  </Drawer.Navigator>
-);
+export const DrawerNavigator = () => {
+  const { user } = useAuth();
+  const isGuest = !user || user.name === 'Guest';
+  return (
+    <Drawer.Navigator
+      drawerContent={(props) => <CustomDrawer {...props} />}
+      screenOptions={{ headerShown: false }}
+    >
+      <Drawer.Screen name="Home" component={HomeStack} />
+      {!isGuest && <Drawer.Screen name="SiteMap" component={SiteMapStack} />}
+      {!isGuest && <Drawer.Screen name="UserProfile" component={UserProfileScreen} />}
+      {!isGuest && <Drawer.Screen name="RecentChanges" component={RecentChangesScreen} />}
+      {/* Thêm các màn khác nếu cần */}
+    </Drawer.Navigator>
+  );
+};
