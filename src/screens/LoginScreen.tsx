@@ -26,6 +26,11 @@ const LoginScreen = () => {
         setLoading(false);
         if (!success) {
             Alert.alert('Đăng nhập thất bại', 'Sai tên đăng nhập hoặc mật khẩu. Vui lòng thử lại!');
+        } else {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'Main' }],
+            });
         }
     };
 
@@ -103,7 +108,13 @@ const LoginScreen = () => {
                     <Button
                         mode="outlined"
                         style={styles.guestBtn}
-                        onPress={loginAsGuest}
+                        onPress={async () => {
+                            await loginAsGuest();
+                            navigation.reset({
+                                index: 0,
+                                routes: [{ name: 'Main' }],
+                            });
+                        }}
                         textColor="#E53935"
                         contentStyle={{ height: 44 }}
                         labelStyle={{ fontWeight: 'bold', fontSize: 15 }}
