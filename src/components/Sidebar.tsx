@@ -1,6 +1,10 @@
 import React from 'react';
 import { View, StyleSheet, Image } from 'react-native';
-import { DrawerContentScrollView, DrawerItem, DrawerContentComponentProps } from '@react-navigation/drawer';
+import {
+  DrawerContentScrollView,
+  DrawerItem,
+  DrawerContentComponentProps,
+} from '@react-navigation/drawer';
 import { Text } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../hooks/useAuth';
@@ -31,8 +35,20 @@ export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
             <DrawerItem
               icon={({ color, size }) => <Icon name="home-outline" color={color} size={size} />}
               label="Trang chủ"
-              onPress={() => navigation.navigate('Home')}
-            />
+              onPress={() =>
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'Home',
+                      state: {
+                        index: 0,
+                        routes: [{ name: 'HomeMain' }],
+                      },
+                    },
+                  ],
+                })
+              }            />
             <DrawerItem
               icon={({ color, size }) => <Icon name="account-circle-outline" color={color} size={size} />}
               label="Hồ sơ cá nhân"
@@ -44,7 +60,10 @@ export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
               onPress={() => {
                 navigation.closeDrawer();
                 setTimeout(() => {
-                  navigation.getParent()?.navigate('CreatePage');
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: 'CreatePage' }],
+                  });
                 }, 250);
               }}
               labelStyle={{ color: '#388e3c', fontWeight: 'bold' }}
