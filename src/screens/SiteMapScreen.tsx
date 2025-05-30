@@ -6,7 +6,13 @@ import { useNavigation } from '@react-navigation/native';
 import RedAppBar from '../components/RedAppBar';
 import GlobalSearchBar from '../components/GlobalSearchBar';
 
-const renderTree = (node: PageTreeNode, navigation: any, path: string[] = [], level: number = 0) => {
+const renderTree = (
+  node: PageTreeNode,
+  navigation: any,
+  path: string[] = [],
+  level: number = 0,
+  canEdit: boolean = false
+) => {
   return Object.entries(node.children).map(([key, child]) => {
     const currentPath = [...path, key];
     if (child.isPage) {
@@ -23,11 +29,11 @@ const renderTree = (node: PageTreeNode, navigation: any, path: string[] = [], le
       return (
         <List.Accordion
           key={currentPath.join(':')}
-          title={key}
+          title={<Text>{key}</Text>}
           left={props => <List.Icon {...props} icon="folder-outline" />}
           style={{ marginLeft: level * 18, backgroundColor: level === 0 ? '#fff' : '#fcfcfc' }}
         >
-          {renderTree(child, navigation, currentPath, level + 1)}
+          {renderTree(child, navigation, currentPath, level + 1, canEdit)}
         </List.Accordion>
       );
     }
@@ -38,6 +44,8 @@ const SiteMapScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [tree, setTree] = useState<PageTreeNode | null>(null);
   const navigation = useNavigation();
+  const { user } = require('../hooks/useAuth').useAuth();
+  const canEdit = !!user && user.name !== 'Guest';
 
   useEffect(() => {
     const fetchPages = async () => {
@@ -72,7 +80,7 @@ const SiteMapScreen: React.FC = () => {
             <ActivityIndicator size="large" color="#E53935" style={{ marginTop: 32 }} />
           ) : tree ? (
             <List.Section>
-              {renderTree(tree, navigation, [], 0)}
+              {renderTree(tree, navigation, [], 0, canEdit)}
             </List.Section>
           ) : null}
         </ScrollView>

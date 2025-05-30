@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Text, TextInput, Button, Portal, Modal } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { pageService } from '../api/pageService';
 import { useAuth } from '../hooks/useAuth';
 
@@ -35,7 +35,9 @@ function getAllowedNamespaces(username: string, allNamespaces: string[]): string
 }
 
 const CreatePageScreen: React.FC = () => {
-  const [namespace, setNamespace] = useState(''); // namespace cấp 1
+  const route = useRoute();
+  const { namespace: namespaceParam } = (route.params || {}) as { namespace?: string };
+  const [namespace, setNamespace] = useState(namespaceParam || '');
   const [subNamespace, setSubNamespace] = useState(''); // namespace con (nếu có)
   const [pageId, setPageId] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -76,7 +78,9 @@ const CreatePageScreen: React.FC = () => {
   }, [namespace, allNamespaces]);
 
   const handleCreate = () => {
-    if (!namespace) {
+    // Nếu có namespace truyền vào thì luôn dùng namespaceParam
+    const ns = namespaceParam || namespace;
+    if (!ns) {
       Alert.alert('Lỗi', 'Vui lòng chọn namespace!');
       return;
     }
@@ -89,7 +93,7 @@ const CreatePageScreen: React.FC = () => {
       return;
     }
     // Ghép namespace
-    let fullNs = namespace;
+    let fullNs = ns;
     if (subNamespace) fullNs += ':' + subNamespace;
     const fullPageId = `${fullNs}:${pageId.trim()}`;
     navigation.navigate('Editor', { pageId: fullPageId });
@@ -99,31 +103,37 @@ const CreatePageScreen: React.FC = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <Text style={styles.title}>Tạo Trang Mới</Text>
-        <Text style={styles.label}>Chọn Namespace:</Text>
-        <TextInput
-          mode="outlined"
-          value={namespace ? namespaces.find(ns => ns.value === namespace)?.label : ''}
-          placeholder="Chọn namespace..."
-          style={styles.dropdown}
-          editable={false}
-          right={<TextInput.Icon icon="menu-down" color="#d32f2f" onPress={() => setShowDropdown(true)} />}
-          pointerEvents="none"
-          onPressIn={() => setShowDropdown(true)}
-        />
-        <Portal>
-          <Modal visible={showDropdown} onDismiss={() => setShowDropdown(false)} contentContainerStyle={styles.modalDropdown}>
-            {namespaces.map(ns => (
-              <TouchableWithoutFeedback key={ns.value} onPress={() => {
-                setNamespace(ns.value);
-                setShowDropdown(false);
-              }}>
-                <View style={[styles.dropdownItem, ns.value === namespace && styles.selectedNs]}>
-                  <Text style={[styles.dropdownItemText, ns.value === namespace && { color: '#d32f2f', fontWeight: 'bold' }]}>{ns.label}</Text>
-                </View>
-              </TouchableWithoutFeedback>
-            ))}
-          </Modal>
-        </Portal>
+        {namespaceParam ? (
+          <Text style={styles.label}>Namespace: <Text style={{ color: '#d32f2f', fontWeight: 'bold' }}>{namespaceParam}</Text></Text>
+        ) : (
+          <>
+            <Text style={styles.label}>Chọn Namespace:</Text>
+            <TextInput
+              mode="outlined"
+              value={namespace ? namespaces.find(ns => ns.value === namespace)?.label : ''}
+              placeholder="Chọn namespace..."
+              style={styles.dropdown}
+              editable={false}
+              right={<TextInput.Icon icon="menu-down" color="#d32f2f" onPress={() => setShowDropdown(true)} />}
+              pointerEvents="none"
+              onPressIn={() => setShowDropdown(true)}
+            />
+            <Portal>
+              <Modal visible={showDropdown} onDismiss={() => setShowDropdown(false)} contentContainerStyle={styles.modalDropdown}>
+                {namespaces.map(ns => (
+                  <TouchableWithoutFeedback key={ns.value} onPress={() => {
+                    setNamespace(ns.value);
+                    setShowDropdown(false);
+                  }}>
+                    <View style={[styles.dropdownItem, ns.value === namespace && styles.selectedNs]}>
+                      <Text style={[styles.dropdownItemText, ns.value === namespace && { color: '#d32f2f', fontWeight: 'bold' }]}>{ns.label}</Text>
+                    </View>
+                  </TouchableWithoutFeedback>
+                ))}
+              </Modal>
+            </Portal>
+          </>
+        )}
         {subNamespaces.length > 0 && namespace ? (
           <>
             <Text style={styles.label}>Chọn Namespace phụ (nếu có):</Text>
@@ -244,4 +254,5 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CreatePageScreen; 
+export default CreatePageScreen;
+export { getAllowedNamespaces }; 
