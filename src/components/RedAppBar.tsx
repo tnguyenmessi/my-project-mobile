@@ -23,17 +23,6 @@ const RedAppBar: React.FC = () => {
         }
       >
         <Menu.Item onPress={() => { setMenuVisible(false); navigation.navigate('RecentChanges'); }} title="Thay đổi gần đây" />
-        <Menu.Item onPress={() => { setMenuVisible(false); navigation.navigate('MediaManager'); }} title="Quản lý phương tiện" />
-        <Menu.Item
-          onPress={() => {
-            setMenuVisible(false);
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'SiteMap' }],
-            });
-          }}
-          title="Sơ đồ trang web"
-        />
       </Menu>
     </Appbar.Header>
   );

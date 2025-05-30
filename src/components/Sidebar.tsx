@@ -29,8 +29,7 @@ export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
             onPress={() => navigation.navigate('Login')}
             labelStyle={{ color: '#E53935', fontWeight: 'bold' }}
           />
-        ) : null}
-        {!isGuest && (
+        ) : (
           <>
             <DrawerItem
               icon={({ color, size }) => <Icon name="home-outline" color={color} size={size} />}
@@ -48,7 +47,18 @@ export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
                     },
                   ],
                 })
-              }            />
+              }
+            />
+            <DrawerItem
+              icon={({ color, size }) => <Icon name="sitemap" color={color} size={size} />}
+              label="Sơ đồ trang web"
+              onPress={() => navigation.navigate('SiteMap')}
+            />
+            <DrawerItem
+              icon={({ color, size }) => <Icon name="image-multiple" color={color} size={size} />}
+              label="Quản lý phương tiện"
+              onPress={() => navigation.navigate('MediaManager')}
+            />
             <DrawerItem
               icon={({ color, size }) => <Icon name="account-circle-outline" color={color} size={size} />}
               label="Hồ sơ cá nhân"
@@ -66,7 +76,6 @@ export const CustomDrawer: React.FC<DrawerContentComponentProps> = (props) => {
                   });
                 }, 250);
               }}
-              labelStyle={{ color: '#388e3c', fontWeight: 'bold' }}
             />
             <DrawerItem
               icon={({ color, size }) => <Icon name="logout" color={color} size={size} />}

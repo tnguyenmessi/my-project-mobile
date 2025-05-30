@@ -5,6 +5,7 @@ import { SiteMapStack } from './SiteMapStack';
 import { CustomDrawer } from '../components/Sidebar';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import RecentChangesScreen from '../screens/RecentChangesScreen';
+import MediaManagerScreen from '../screens/MediaManagerScreen';
 import { useAuth } from '../hooks/useAuth';
 
 export type DrawerParamList = {
@@ -12,6 +13,7 @@ export type DrawerParamList = {
   SiteMap: undefined;
   UserProfile: undefined;
   RecentChanges: undefined;
+  MediaManager: undefined;
 };
 
 const Drawer = createDrawerNavigator<DrawerParamList>();
@@ -26,6 +28,7 @@ export const DrawerNavigator = () => {
     >
       <Drawer.Screen name="Home" component={HomeStack} />
       {!isGuest && <Drawer.Screen name="SiteMap" component={SiteMapStack} />}
+      {!isGuest && <Drawer.Screen name="MediaManager" component={MediaManagerScreen} />}
       {!isGuest && <Drawer.Screen name="UserProfile" component={UserProfileScreen} />}
       {!isGuest && <Drawer.Screen name="RecentChanges" component={RecentChangesScreen} />}
       {/* Thêm các màn khác nếu cần */}
