@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Fragment } from 'react';
-import { View, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { Text, IconButton } from 'react-native-paper';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { pageService } from '../api/pageService';
@@ -8,6 +8,7 @@ import RedAppBar from '../components/RedAppBar';
 import GlobalSearchBar from '../components/GlobalSearchBar';
 import PageActionsFab from '../components/PageActionsFab';
 import { useAuth } from '../hooks/useAuth';
+import { getAllowedNamespaces } from './CreatePageScreen'; // hoặc import đúng đường dẫn nếu cần
 
 const PageDetailScreen = () => {
   const route = useRoute();
@@ -25,13 +26,20 @@ const PageDetailScreen = () => {
         const data = await pageService.getPageContent(pageId);
         setHtml(data.html);
       } catch (e) {
-        Alert.alert('Lỗi', 'Không thể tải nội dung trang.');
+        setHtml('');
       } finally {
         setLoading(false);
       }
     };
     fetchPage();
   }, [pageId]);
+
+  const isStartPage = pageId.endsWith(':start') || pageId === 'start';
+  console.log('DEBUG PageDetailScreen:', { pageId, isStartPage, canEdit });
+
+  const namespace = pageId.replace(/:start$/, '');
+  const allowedNamespaces = getAllowedNamespaces(user?.name || '', [namespace]);
+  const canCreateInNamespace = allowedNamespaces.includes(namespace);
 
   if (loading) {
     return (
@@ -49,6 +57,16 @@ const PageDetailScreen = () => {
         <IconButton icon="arrow-left" onPress={() => navigation.goBack()} />
         <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{pageId}</Text>
       </View>
+      {isStartPage && canCreateInNamespace && (
+        <View style={{ alignItems: 'flex-end', backgroundColor: '#fff', padding: 12 }}>
+          <Text
+            onPress={() => navigation.navigate('CreatePage', { namespace })}
+            style={styles.createBtn}
+          >
+            Tạo trang mới
+          </Text>
+        </View>
+      )}
       <View style={styles.container}>
         <MarkdownViewer html={html} />
         <PageActionsFab pageId={pageId} canEdit={canEdit} canDelete={canDelete} />
@@ -59,7 +77,22 @@ const PageDetailScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  createBtn: {
+    marginLeft: 12,
+    color: '#fff',
+    backgroundColor: '#d32f2f',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 6,
+    fontWeight: 'bold',
+    overflow: 'hidden',
+  },
 });
 
 export default PageDetailScreen;
