@@ -49,6 +49,8 @@ const PageDetailScreen = () => {
     );
   }
 
+  console.log('HTML DATA:', html);
+
   return (
     <Fragment>
       <RedAppBar />
@@ -68,7 +70,7 @@ const PageDetailScreen = () => {
         </View>
       )}
       <View style={styles.container}>
-        <MarkdownViewer html={html} />
+        <MarkdownViewer html={html || '<h2>Không có nội dung để hiển thị</h2>'} />
         <PageActionsFab pageId={pageId} canEdit={canEdit} canDelete={canDelete} />
       </View>
     </Fragment>
